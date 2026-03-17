@@ -1,0 +1,15 @@
+# Frontend specific
+frontend/node_modules/
+frontend/.env*
+
+# Backend specific
+backend/node_modules/
+backend/.env*
+backend/logs/
+backend/coverage/
+
+# Ignore local env
+.env
+
+# Ignore output from Vite
+frontend/.vite/
