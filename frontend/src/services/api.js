@@ -24,5 +24,5 @@ export const analyzeAssignment = async (description) => {
 
 export const fetchEmails = async () => {
   const response = await api.get('/gmail/fetch');
-  return response.data;
+  return response.data.assignments;
 };

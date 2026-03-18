@@ -77,6 +77,7 @@ const fetchAssignments = async (user) => {
       if (isClassroomAssignment) {
         console.log(`Found Classroom assignment: ${subject} (PDF: ${hasPdfAttachment})`);
         assignments.push({
+          gmailId: message.id,  
           title: subject,
           description: description,
           source: 'google_classroom',
