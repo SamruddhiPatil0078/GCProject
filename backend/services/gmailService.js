@@ -1,19 +1,39 @@
 const { google } = require('googleapis');
 
-// 🔥 Extract due date
+// 🔥 Extract due date (IMPROVED)
 const extractDueDate = (text) => {
   if (!text) return null;
 
-  const match = text.match(/Due\s+([A-Za-z]{3,})\s+(\d{1,2})/i);
+  const match = text.match(/due\s+(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\s+\d{1,2}/i);
   if (!match) return null;
 
-  const month = match[1];
-  const day = match[2];
-
   const year = new Date().getFullYear();
-  const date = new Date(`${month} ${day}, ${year}`);
+  const date = new Date(match[0].replace(/due\s+/i, '') + ` ${year}`);
 
   return isNaN(date) ? null : date;
+};
+
+// 🔥 CLEAN TITLE (VERY IMPORTANT FIX)
+const cleanTitle = (subject) => {
+  if (!subject) return "Assignment";
+
+  let title = subject
+    .replace(/new assignment:?/gi, '')
+    .replace(/notification settings/gi, '')
+    .replace(/posted/gi, '')
+    .replace(/see details/gi, '')
+    .replace(/"/g, '')
+    .replace(/\(.*?\)/g, '') // remove brackets
+    .replace(/[^\w\s]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  // Try extracting meaningful part
+  const match = title.match(
+    /(assignment\s*\d+|quiz|project|lab|dbms|java|marathi|object oriented programming)/i
+  );
+
+  return match ? match[0].toUpperCase() : title.slice(0, 60);
 };
 
 // 🔥 Detect category
@@ -30,7 +50,7 @@ const detectCategory = (title) => {
   return "GENERAL";
 };
 
-// 🔥 FIXED priority logic (IMPORTANT)
+// 🔥 Priority logic
 const calculatePriority = (deadline) => {
   if (!deadline) return "LOW";
 
@@ -40,14 +60,11 @@ const calculatePriority = (deadline) => {
   const d = new Date(deadline);
   d.setHours(0, 0, 0, 0);
 
-  const diffTime = d - now;
-  const days = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-  console.log("📊 Days left:", days);
+  const days = Math.ceil((d - now) / (1000 * 60 * 60 * 24));
 
   if (days < 0) return "OVERDUE";
-  if (days <= 3) return "HIGH";      // 🔥 changed
-  if (days <= 10) return "MEDIUM";   // 🔥 changed
+  if (days <= 3) return "HIGH";
+  if (days <= 10) return "MEDIUM";
   return "LOW";
 };
 
@@ -68,12 +85,12 @@ const fetchAssignments = async (user) => {
   try {
     const res = await gmail.users.messages.list({
       userId: 'me',
-      q: 'from:no-reply@classroom.google.com OR (classroom.google.com AND (assignment OR posted OR due))',
+      q: 'from:classroom.google.com',
       maxResults: 50
     });
 
     const messages = res.data.messages || [];
-    console.log(`Found ${messages.length} Google Classroom emails`);
+    console.log(`📨 Found ${messages.length} classroom emails`);
 
     const assignments = [];
 
@@ -90,65 +107,55 @@ const fetchAssignments = async (user) => {
 
       const description = msg.data.snippet || '';
 
-      const isFromClassroom =
-        from?.includes('google.com') || from?.includes('classroom');
+      // 🔥 STRICT FILTER
+      const isClassroom =
+        from.toLowerCase().includes('classroom') &&
+        (
+          subject.toLowerCase().includes('assignment') ||
+          subject.toLowerCase().includes('due') ||
+          subject.toLowerCase().includes('posted')
+        );
 
-      const hasAssignmentKeyword =
-        subject.toLowerCase().includes('assignment') ||
-        subject.toLowerCase().includes('posted') ||
-        subject.toLowerCase().includes('due');
+      if (!isClassroom) continue;
 
-      const isClassroomAssignment =
-        isFromClassroom && hasAssignmentKeyword;
+      // 🔥 CLEAN DATA
+      const title = cleanTitle(subject);
 
-      const hasPdfAttachment =
+      // 🔥 USE BOTH SUBJECT + DESCRIPTION FOR DATE
+      const fullText = subject + " " + description;
+      const deadline = extractDueDate(fullText);
+
+      const category = detectCategory(title);
+      const priority = calculatePriority(deadline);
+
+      // 🔥 PDF DETECTION
+      const hasPdf =
         msg.data.payload.parts?.some(
           part =>
             part.filename &&
             part.filename.toLowerCase().endsWith('.pdf')
         ) || false;
 
-      if (isClassroomAssignment) {
+      console.log("📌", title, "| 📅", deadline, "| ⚡", priority);
 
-        // 🔥 CLEAN TITLE
-        let cleanTitle = subject
-          .toLowerCase()
-          .replace(/new assignment:/g, '')
-          .replace(/posted/g, '')
-          .replace(/"/g, '')
-          .replace(/[^\w\s]/g, '')
-          .replace(/\s+/g, ' ')
-          .trim();
-
-        if (!cleanTitle) continue;
-
-        // 🔥 CORE LOGIC
-        const deadline = extractDueDate(description);
-        const category = detectCategory(cleanTitle);
-        const priority = calculatePriority(deadline);
-
-        console.log("📅 Deadline:", deadline);
-        console.log("📚 Category:", category, "| ⚡ Priority:", priority);
-
-        assignments.push({
-          gmailId: message.id,
-          title: cleanTitle,
-          description,
-          deadline,
-          category,
-          priority,
-          source: 'google_classroom',
-          hasPdf: hasPdfAttachment,
-          userId: user._id
-        });
-      }
+      assignments.push({
+        gmailId: message.id, // 🔥 KEY FOR DUPLICATE FIX
+        title,
+        description,
+        deadline,
+        category,
+        priority,
+        source: 'google_classroom',
+        hasPdf,
+        userId: user._id
+      });
     }
 
-    console.log(`Returning ${assignments.length} assignments`);
+    console.log(`✅ Returning ${assignments.length} assignments`);
     return assignments;
 
   } catch (error) {
-    console.error('Error fetching Gmail:', error);
+    console.error('❌ Gmail Fetch Error:', error.message);
     return [];
   }
 };
