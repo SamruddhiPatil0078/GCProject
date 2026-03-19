@@ -8,7 +8,7 @@ exports.fetch = async (req, res) => {
     let newCount = 0;
 
     for (const email of emails) {
-
+  
       const result = await Assignment.updateOne(
         { gmailId: email.gmailId },   // search condition
         { $setOnInsert: email },      // insert only if not exists

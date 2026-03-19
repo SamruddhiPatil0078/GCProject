@@ -8,6 +8,15 @@ const assignmentSchema = new mongoose.Schema({
     unique: true   // THIS prevents duplicates automatically
   },
 
+  subject: {
+  type: String,
+  default: "General"
+},
+
+assignmentType: {
+  type: String,
+  default: "Other"
+},
   title: { type: String, required: true },
   description: { type: String, required: true },
   deadline: { type: Date },
