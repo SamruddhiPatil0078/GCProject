@@ -48,6 +48,7 @@ passport.deserializeUser(async (id, done) => {
 const router = express.Router();
 
 router.get('/google', passport.authenticate('google', { 
+<<<<<<< HEAD
   scope: [
     'profile',
     'email',
@@ -56,6 +57,12 @@ router.get('/google', passport.authenticate('google', {
   ],
   prompt: 'consent'
 }));
+=======
+  scope: ['profile', 'email', 'https://www.googleapis.com/auth/gmail.readonly'],
+  prompt: 'consent' // Force consent screen to show scopes
+}));
+
+>>>>>>> main
 router.get('/google/callback', passport.authenticate('google', { failureRedirect: '/' }), (req, res) => {
   res.redirect('http://localhost:5173/dashboard'); // Redirect to frontend
 });
@@ -77,9 +84,12 @@ router.get('/user', (req, res) => {
   }
 });
 
+<<<<<<< HEAD
 scope: [
   'https://www.googleapis.com/auth/gmail.readonly',
   'https://www.googleapis.com/auth/calendar.events' // 🔥 ADD THIS
 ]
 
+=======
+>>>>>>> main
 module.exports = router;

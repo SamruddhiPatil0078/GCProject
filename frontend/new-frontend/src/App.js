@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import logo from './logo.svg';
 import './App.css';
 
@@ -18,8 +19,21 @@ function App() {
           Learn React
         </a>
       </header>
+=======
+import React from "react";
+import Calendar from "./Calendar";
+
+function App() {
+  return (
+    <div>
+      <Calendar />
+>>>>>>> main
     </div>
   );
 }
 
+<<<<<<< HEAD
 export default App;
+=======
+export default App;
+>>>>>>> main

@@ -4,27 +4,22 @@ const { fetchAssignments } = require('../services/gmailService');
 exports.fetch = async (req, res) => {
   try {
     const emails = await fetchAssignments(req.user);
-
-    let newAssignments = [];
-    let skipped = 0;
+    let newCount = 0;
 
     for (const email of emails) {
 
-      const existing = await Assignment.findOne({
-        title: email.title.trim().toLowerCase(),
-        userId: req.user._id
-      });
+      const result = await Assignment.updateOne(
+        { gmailId: email.gmailId, userId: req.user._id }, // unique check
+        { $setOnInsert: { ...email, userId: req.user._id } },
+        { upsert: true }
+      );
 
-      if (existing) {
-        console.log("Duplicate skipped:", email.title);
-        skipped++;
-        continue;
+      if (result.upsertedCount > 0) {
+        console.log("New assignment inserted:", email.gmailId);
+        newCount++;
+      } else {
+        console.log("Duplicate skipped:", email.gmailId);
       }
-
-      const created = await Assignment.create(email);
-      newAssignments.push(created);
-
-      console.log("Inserted:", email.title);
     }
 
     const assignments = await Assignment.find({
@@ -32,8 +27,7 @@ exports.fetch = async (req, res) => {
     }).sort({ createdAt: -1 });
 
     res.json({
-      message: `${newAssignments.length} new, ${skipped} skipped`,
-      newAssignments,
+      message: `${newCount} new assignments fetched`,
       assignments
     });
 

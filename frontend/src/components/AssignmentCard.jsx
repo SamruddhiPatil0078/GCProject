@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { useState } from 'react';
 
 const AssignmentCard = ({ assignment, onStart }) => {
@@ -27,10 +28,14 @@ const AssignmentCard = ({ assignment, onStart }) => {
     }
   };
 
+=======
+const AssignmentCard = ({ assignment, onStart }) => {
+>>>>>>> main
   return (
     <div className="assignment-card">
       <h3>{assignment.title}</h3>
       <p>{assignment.description}</p>
+<<<<<<< HEAD
 
       <p>📅 Deadline: {assignment.deadline ? new Date(assignment.deadline).toDateString() : 'N/A'}</p>
       <p>⚡ Priority: {assignment.priority}</p>
@@ -46,6 +51,15 @@ const AssignmentCard = ({ assignment, onStart }) => {
       <button onClick={() => addToCalendar(assignment._id)}>
         📅 Add to Calendar
       </button>
+=======
+      <p>Category: {assignment.category}</p>
+      <p>Estimated Hours: {assignment.estimatedHours}</p>
+      <p>Progress: {assignment.progress}%</p>
+      {assignment.source === 'google_classroom' && (
+        <p>📚 From Google Classroom {assignment.hasPdf && '📄 Has PDF'}</p>
+      )}
+      <button onClick={() => onStart(assignment)}>Start Timer</button>
+>>>>>>> main
     </div>
   );
 };

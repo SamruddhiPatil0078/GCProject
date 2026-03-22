@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+<<<<<<< HEAD
 
 const {
   create,
@@ -30,6 +31,15 @@ router.use(isAuthenticated);
 
 // ✅ NORMAL ROUTES
 router.post('/', create);
+=======
+const { create, getCalendarAssignments ,getAll, getById, update, delete: deleteAssignment } = require('../controllers/assignmentController');
+const { isAuthenticated } = require('../middleware/auth');
+
+//router.use(isAuthenticated);
+
+router.post('/', create);
+router.get('/calendar', getCalendarAssignments);
+>>>>>>> main
 router.get('/', getAll);
 router.get('/:id', getById);
 router.put('/:id', update);
