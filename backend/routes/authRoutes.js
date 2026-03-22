@@ -3,6 +3,7 @@ const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const User = require('../models/User');
 
+// 🔐 Google Strategy
 passport.use(new GoogleStrategy({
   clientID: process.env.GMAIL_CLIENT_ID,
   clientSecret: process.env.GMAIL_CLIENT_SECRET,
@@ -10,6 +11,7 @@ passport.use(new GoogleStrategy({
 }, async (accessToken, refreshToken, profile, done) => {
   try {
     let user = await User.findOne({ googleId: profile.id });
+
     if (!user) {
       user = new User({
         googleId: profile.id,
@@ -17,21 +19,23 @@ passport.use(new GoogleStrategy({
         name: profile.displayName,
         accessToken,
         refreshToken,
-        tokenExpiry: new Date(Date.now() + 3600000) // 1 hour
+        tokenExpiry: new Date(Date.now() + 3600000)
       });
-      await user.save();
     } else {
       user.accessToken = accessToken;
       user.refreshToken = refreshToken;
       user.tokenExpiry = new Date(Date.now() + 3600000);
-      await user.save();
     }
+
+    await user.save();
     return done(null, user);
+
   } catch (error) {
     return done(error, null);
   }
 }));
 
+// 🔁 Session handling
 passport.serializeUser((user, done) => {
   done(null, user.id);
 });
@@ -47,26 +51,26 @@ passport.deserializeUser(async (id, done) => {
 
 const router = express.Router();
 
+// 🔐 Google Auth Route
 router.get('/google', passport.authenticate('google', { 
-<<<<<<< HEAD
   scope: [
     'profile',
     'email',
     'https://www.googleapis.com/auth/gmail.readonly',
-    'https://www.googleapis.com/auth/calendar.events' // 🔥 REQUIRED
+    'https://www.googleapis.com/auth/calendar.events' // ⭐ calendar permission
   ],
   prompt: 'consent'
 }));
-=======
-  scope: ['profile', 'email', 'https://www.googleapis.com/auth/gmail.readonly'],
-  prompt: 'consent' // Force consent screen to show scopes
-}));
 
->>>>>>> main
-router.get('/google/callback', passport.authenticate('google', { failureRedirect: '/' }), (req, res) => {
-  res.redirect('http://localhost:5173/dashboard'); // Redirect to frontend
-});
+// 🔁 Callback
+router.get('/google/callback',
+  passport.authenticate('google', { failureRedirect: '/' }),
+  (req, res) => {
+    res.redirect('http://localhost:5173/dashboard');
+  }
+);
 
+// 🚪 Logout
 router.get('/logout', (req, res) => {
   req.logout((err) => {
     if (err) {
@@ -76,6 +80,7 @@ router.get('/logout', (req, res) => {
   });
 });
 
+// 👤 Get user
 router.get('/user', (req, res) => {
   if (req.user) {
     res.json({ user: req.user });
@@ -84,12 +89,4 @@ router.get('/user', (req, res) => {
   }
 });
 
-<<<<<<< HEAD
-scope: [
-  'https://www.googleapis.com/auth/gmail.readonly',
-  'https://www.googleapis.com/auth/calendar.events' // 🔥 ADD THIS
-]
-
-=======
->>>>>>> main
 module.exports = router;

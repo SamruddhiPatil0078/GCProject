@@ -1,6 +1,5 @@
 const Assignment = require('../models/Assignment');
 
-<<<<<<< HEAD
 // 🔥 Days left helper
 const getDaysLeft = (deadline) => {
   if (!deadline) return null;
@@ -14,13 +13,7 @@ const getDaysLeft = (deadline) => {
   return Math.ceil((d - now) / (1000 * 60 * 60 * 24));
 };
 
-exports.create = async (req, res) => {
-  try {
-    const assignment = new Assignment({ ...req.body, userId: req.user._id });
-    await assignment.save();
-    res.status(201).json(assignment);
-=======
-// CREATE
+// ✅ CREATE
 exports.create = async (req, res) => {
   try {
     const assignment = new Assignment({
@@ -32,24 +25,21 @@ exports.create = async (req, res) => {
     await assignment.save();
     res.status(201).json(assignment);
 
->>>>>>> main
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
 };
 
-<<<<<<< HEAD
+// ✅ GET ALL (with filtering + sorting + daysLeft)
 exports.getAll = async (req, res) => {
   try {
     let assignments = await Assignment.find({ userId: req.user._id });
 
-    // 🔥 ADD daysLeft
     assignments = assignments.map(a => ({
       ...a._doc,
       daysLeft: getDaysLeft(a.deadline)
     }));
 
-    // 🔥 FILTERING
     const { priority, days } = req.query;
 
     if (priority) {
@@ -57,10 +47,11 @@ exports.getAll = async (req, res) => {
     }
 
     if (days) {
-      assignments = assignments.filter(a => a.daysLeft !== null && a.daysLeft <= parseInt(days));
+      assignments = assignments.filter(
+        a => a.daysLeft !== null && a.daysLeft <= parseInt(days)
+      );
     }
 
-    // 🔥 SORTING
     const priorityOrder = {
       OVERDUE: 0,
       HIGH: 1,
@@ -74,22 +65,12 @@ exports.getAll = async (req, res) => {
 
     res.json(assignments);
 
-=======
-// GET ALL
-exports.getAll = async (req, res) => {
-  try {
-    const assignments = await Assignment.find({ userId: req.user._id });
-    res.json(assignments);
->>>>>>> main
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
 
-<<<<<<< HEAD
-=======
-// GET BY ID
->>>>>>> main
+// ✅ GET BY ID
 exports.getById = async (req, res) => {
   try {
     const assignment = await Assignment.findOne({
@@ -101,26 +82,19 @@ exports.getById = async (req, res) => {
       return res.status(404).json({ error: 'Assignment not found' });
     }
 
-<<<<<<< HEAD
     const result = {
       ...assignment._doc,
       daysLeft: getDaysLeft(assignment.deadline)
     };
 
     res.json(result);
-=======
-    res.json(assignment);
->>>>>>> main
 
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
 
-<<<<<<< HEAD
-=======
-// UPDATE
->>>>>>> main
+// ✅ UPDATE
 exports.update = async (req, res) => {
   try {
     const assignment = await Assignment.findOneAndUpdate(
@@ -140,10 +114,7 @@ exports.update = async (req, res) => {
   }
 };
 
-<<<<<<< HEAD
-=======
-// DELETE
->>>>>>> main
+// ✅ DELETE
 exports.delete = async (req, res) => {
   try {
     const assignment = await Assignment.findOneAndDelete({
@@ -160,17 +131,12 @@ exports.delete = async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-<<<<<<< HEAD
-=======
 };
 
-// 🎯 CALENDAR
+// 🎯 CALENDAR FEATURE (YOUR PART)
 exports.getCalendarAssignments = async (req, res) => {
   try {
-    // 🔥 REMOVE user filter temporarily
     const assignments = await Assignment.find();
-
-    console.log("Assignments for calendar:", assignments);
 
     const extractDeadline = (text) => {
       if (!text) return null;
@@ -204,27 +170,21 @@ exports.getCalendarAssignments = async (req, res) => {
     const events = [];
 
     for (let a of assignments) {
-      try {
-        const deadline = extractDeadline(a.description);
-        if (!deadline) continue;
+      const deadline = extractDeadline(a.description);
+      if (!deadline) continue;
 
-        events.push({
-          id: a._id?.toString() || Math.random(),
-          title: cleanTitle(a.title),
-          start: deadline,
-          end: deadline,
-          color: getColor(deadline)
-        });
-      } catch (innerErr) {
-        console.log("Skipping bad assignment:", innerErr);
-      }
+      events.push({
+        id: a._id?.toString(),
+        title: cleanTitle(a.title),
+        start: deadline,
+        end: deadline,
+        color: getColor(deadline)
+      });
     }
 
     res.json(events);
 
   } catch (error) {
-    console.error("Calendar Error:", error);
     res.status(500).json({ error: error.message });
   }
->>>>>>> main
 };

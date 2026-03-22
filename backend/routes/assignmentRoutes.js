@@ -1,13 +1,13 @@
 const express = require('express');
 const router = express.Router();
-<<<<<<< HEAD
 
 const {
   create,
   getAll,
   getById,
   update,
-  delete: deleteAssignment
+  delete: deleteAssignment,
+  getCalendarAssignments
 } = require('../controllers/assignmentController');
 
 const { isAuthenticated } = require('../middleware/auth');
@@ -29,20 +29,13 @@ router.get('/debug/all', async (req, res) => {
 router.use(isAuthenticated);
 
 
-// ✅ NORMAL ROUTES
+// ✅ MAIN ROUTES
 router.post('/', create);
-=======
-const { create, getCalendarAssignments ,getAll, getById, update, delete: deleteAssignment } = require('../controllers/assignmentController');
-const { isAuthenticated } = require('../middleware/auth');
-
-//router.use(isAuthenticated);
-
-router.post('/', create);
-router.get('/calendar', getCalendarAssignments);
->>>>>>> main
+router.get('/calendar', getCalendarAssignments); // ⭐ your feature
 router.get('/', getAll);
 router.get('/:id', getById);
 router.put('/:id', update);
 router.delete('/:id', deleteAssignment);
+
 
 module.exports = router;
