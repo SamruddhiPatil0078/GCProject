@@ -4,6 +4,7 @@ import AssignmentForm from './components/AssignmentForm';
 import AssignmentCard from './components/AssignmentCard';
 import Timer from './components/Timer';
 import GmailFetch from './components/GmailFetch';
+import Calendar from './components/Calendar'; // ⭐ ADDED
 import { getAssignments } from './services/api';
 import './App.css';
 
@@ -47,9 +48,14 @@ function App() {
   return (
     <div className="app">
       <h1>AI Assignment Organizer</h1>
+
       <Login onLogin={handleLogin} />
       <GmailFetch onFetch={fetchAssignments} />
       <AssignmentForm onAdd={fetchAssignments} />
+
+      {/* ⭐ CALENDAR ADDED HERE */}
+      <Calendar />
+
       <div className="assignments">
         {assignments.map(assignment => (
           <AssignmentCard
@@ -59,8 +65,12 @@ function App() {
           />
         ))}
       </div>
+
       {currentAssignment && (
-        <Timer assignment={currentAssignment} onComplete={() => setCurrentAssignment(null)} />
+        <Timer
+          assignment={currentAssignment}
+          onComplete={() => setCurrentAssignment(null)}
+        />
       )}
     </div>
   );
